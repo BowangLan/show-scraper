@@ -106,26 +106,60 @@ class ObjectListBase(object):
         print('{} new objects added to the dataset'.format(len(new_objects)))
         return new_objects
 
+    def delete_one(self, obj):
+        if obj in self.data:
+            self.data.remove(obj)
+            return True
+        else:
+            return False
+
+    def sort(self, inplace: bool = True, **kwargs):
+        """
+        Sort the data using sorted. Keyword arguments are passed directly to `sorted()`
+        :param inplace: bool, if True, then the data is sorted and returned without modifying
+                              the original data.
+                              if False, then the original data is modified and return the 
+                              instance itself.
+        """
+        if inplace:
+            self.data = sorted(self.data, **kwargs)
+            return self
+        else:
+            return sorted(self.data, **kwargs)
+
+    def filter(self, func, inplace: bool = True):
+        if inplace:
+            filter(func, self.data)
+            return self
+        else:
+            return filter(func, self.data.copy())
+
     def unique(self):
         return len(self.data) == len(set(self.data))
 
     def json(self):
         return [i.json() for i in self.data]
 
-    def pretty(self, start: int = 0, end: int = None, step: int = 1, count: int = None):
+    def pretty(self, data: list = None, start: int = 0, end: int = None, step: int = 1, count: int = None, format_item=None):
         """
         Return a prettified string of the requested data based on the parameters given.
 
         :param start: int, default 0;
         :param end: int, default the length of the dataset;
         :param step: int, default 1;
+        :param format_item: func, a function that takes in an item and return a tuple that will
+                            later be joined to the output.
+                            default: lambda item: item.array()
+
 
         return data range: data[start:end:step]
         """
-        end = end if end else len(self.data)
+        data = data if data is not None else self.data
+        end = end if end else len(data)
         if count:
             end = start + count
-        return tabulate([item.array() for item in self.data[start:end:step]],)
+        format_item = format_item if format_item else lambda item: item.array()
+        return tabulate([format_item(item) for item in data[start:end:step]],)
 
     def pretty_print(self, **kwargs):
         print(self.pretty(**kwargs))

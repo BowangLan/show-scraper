@@ -11,7 +11,7 @@ class ShowList(ObjectListBase):
         super().__init__(**kwargs)
 
     def save(self):
-        self.sort()
+        self.sort(key=lambda item: item.meijumi_id)
         super().save()
 
     def update_all(self, shows=[], save=True):
@@ -51,13 +51,38 @@ class ShowList(ObjectListBase):
         else:
             return None
 
-    def sort(self):
+    def sort_by_id(self, **kwargs):
         """
         Sort shows by their id.
         """
-        self.data = sorted(
-            self.data, key=lambda s: s.meijumi_id, reverse=True)
+        kwargs['key'] = lambda s: s.meijumi_id
+        return super().sort(**kwargs)
 
-    def pretty(self):
-        temp = [(s.name, s.last_update, s.url) for s in self.data]
-        return tabulate(temp, tablefmt='plain')
+    def sort_by_date(self, **kwargs):
+        """
+        Sort shows by their id.
+        """
+        kwargs['key'] = lambda s: s.last_update
+        return super().sort(**kwargs)
+
+    def pretty(self, **kwargs):
+        kwargs['format_item'] = lambda item: (
+            item.name,
+            item.last_update,
+            item.meijumi_id,
+            item.url
+        )
+        return super().pretty(**kwargs)
+
+    def valid_shows(self):
+        return list(filter(
+            lambda item: item.name and item.last_update,
+            self.data.copy()))
+
+    def print_latest(self, count):
+        valid_shows = self.valid_shows()
+        data = sorted(
+            valid_shows,
+            key=lambda item: item.last_update,
+            reverse=True)
+        self.pretty_print(data=data, count=count)

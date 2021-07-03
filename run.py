@@ -62,9 +62,25 @@ class SubscribedShowManager(object):
             self.shows.append_one(show_obj)
             if save:
                 self.save()
+            print("Add show {} to the subscribed show list".format(show_obj))
         else:
             print(
                 "Show with ID {} not found in show database!".format(show_id))
+            return False
+
+    def delete_show_by_id(self, show_id, save=True):
+        """
+        Delete a show from the subscribed list, given the show id.
+        """
+        show_obj = self.shows.find_by_id(show_id)
+        if show_obj:
+            self.shows.delete_one(show_obj)
+            if save:
+                self.save()
+            print("Delete show {} from the subscribed show list".format(show_obj))
+            return True
+        else:
+            return False
 
 
 class MeijumiDataManager(object):
@@ -174,6 +190,12 @@ def main():
                 print(show.pretty())
             else:
                 print("\nShow with ID {} not found".format(show_id))
+    elif sys.argv[1] == 'shows':
+        if len(sys.argv) == 3:
+            count = int(sys.argv[2])
+        else:
+            count = 10
+        data_manager.shows.print_latest(count=count)
 
     elif sys.argv[1] == 'news':
         if len(sys.argv) == 3:
@@ -181,12 +203,15 @@ def main():
         else:
             count = 10
         print('\n{} latest episode news:'.format(count))
-        data_manager.news.pretty_print(end=count)
+        data_manager.news.pretty_print(count=count)
 
     elif sys.argv[1] == 'subscribed':
         if len(sys.argv) == 4 and sys.argv[2] == 'add':
             show_id = sys.argv[3]
             subscribed_manager.add_show_by_id(show_id)
+        elif len(sys.argv) == 4 and sys.argv[2] == 'delete':
+            show_id = sys.argv[3]
+            subscribed_manager.delete_show_by_id(show_id)
         else:
             subscribed_manager.news.pretty_print()
         print("\nCurrent subscribed shows:")
