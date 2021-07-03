@@ -53,19 +53,38 @@ class SubscribedShowManager(object):
             json.dump(show_id_list, f)
         print("{} subscribed shows ID saved".format(len(show_id_list)))
 
+    def add_show(self, show_obj, save=True):
+        """
+        Add a new show to the subscribed shows, given the show id.
+        """
+        if show_obj not in self.shows:
+            self.shows.append_one(show_obj)
+            if save:
+                self.save()
+            # print("Add show {} to the subscribed show list".format(show_obj))
+        else:
+            # print(
+            # "Show with ID {} is already in the subscribed shows!".format(show_obj.meijumi_id))
+            return False
+
     def add_show_by_id(self, show_id, save=True):
         """
         Add a new show to the subscribed shows, given the show id.
         """
         show_obj = self._shows_source.find_by_id(show_id)
         if show_obj:
-            self.shows.append_one(show_obj)
+            return self.add_show(show_obj, save=save)
+        else:
+            return False
+
+    def delete_show(self, show_obj, save=True):
+        if show_obj in self.shows:
+            self.shows.delete_one(show_obj)
             if save:
                 self.save()
-            print("Add show {} to the subscribed show list".format(show_obj))
+            print("Delete show {} from the subscribed show list".format(show_obj))
+            return True
         else:
-            print(
-                "Show with ID {} not found in show database!".format(show_id))
             return False
 
     def delete_show_by_id(self, show_id, save=True):
@@ -74,11 +93,7 @@ class SubscribedShowManager(object):
         """
         show_obj = self.shows.find_by_id(show_id)
         if show_obj:
-            self.shows.delete_one(show_obj)
-            if save:
-                self.save()
-            print("Delete show {} from the subscribed show list".format(show_obj))
-            return True
+            self.delete_show(show_obj)
         else:
             return False
 
@@ -112,7 +127,7 @@ class MeijumiDataManager(object):
 
     def check_path(self):
         """
-        Check if the json file paths exist. 
+        Check if the json file paths exist.
           If not, create the file with [] as content.
         """
         for path in self.PATHS.values():
@@ -196,6 +211,19 @@ def main():
         else:
             count = 10
         data_manager.shows.print_latest(count=count)
+
+    elif len(sys.argv) >= 3 and sys.argv[1] == 'search':
+        if len(sys.argv) >= 4:
+            count = int(sys.argv[3])
+        else:
+            count = 10
+        keyword = sys.argv[2]
+        data = data_manager.shows.filter(
+            lambda item: item.name and keyword in item.name,
+            inplace=False)
+        print("\nSearch result(s) for \"{}\":  {} result(s)".format(
+            keyword, len(data)))
+        data_manager.shows.pretty_print(data=data, count=count)
 
     elif sys.argv[1] == 'news':
         if len(sys.argv) == 3:

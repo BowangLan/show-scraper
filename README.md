@@ -46,6 +46,12 @@ python3 run.py shows <count>
 python3 run.py shows 20
 ```
 
+Search show names by keyword:
+
+```
+python3 run.py search <keyword>
+```
+
 ### Subscribed Show(s)
 
 Get a list of subscribed shows:

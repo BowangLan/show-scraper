@@ -113,7 +113,7 @@ class ObjectListBase(object):
         else:
             return False
 
-    def sort(self, inplace: bool = True, **kwargs):
+    def sort(self, inplace: bool = False, **kwargs):
         """
         Sort the data using sorted. Keyword arguments are passed directly to `sorted()`
         :param inplace: bool, if True, then the data is sorted and returned without modifying
@@ -127,12 +127,12 @@ class ObjectListBase(object):
         else:
             return sorted(self.data, **kwargs)
 
-    def filter(self, func, inplace: bool = True):
+    def filter(self, func, inplace: bool = False):
         if inplace:
-            filter(func, self.data)
+            self.data = list(filter(func, self.data))
             return self
         else:
-            return filter(func, self.data.copy())
+            return list(filter(func, self.data.copy()))
 
     def unique(self):
         return len(self.data) == len(set(self.data))
@@ -140,7 +140,14 @@ class ObjectListBase(object):
     def json(self):
         return [i.json() for i in self.data]
 
-    def pretty(self, data: list = None, start: int = 0, end: int = None, step: int = 1, count: int = None, format_item=None):
+    def pretty(self,
+               data: list = None,
+               start: int = 0,
+               end: int = None,
+               step: int = 1,
+               count: int = None,
+               format_item=None
+               ):
         """
         Return a prettified string of the requested data based on the parameters given.
 
