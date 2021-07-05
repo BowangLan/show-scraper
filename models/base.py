@@ -166,7 +166,7 @@ class ObjectListBase(object):
         if count:
             end = start + count
         format_item = format_item if format_item else lambda item: item.array()
-        return tabulate([format_item(item) for item in data[start:end:step]],)
+        return tabulate([format_item(item) for item in data[start:end:step]], showindex=True)
 
     def pretty_print(self, **kwargs):
         print(self.pretty(**kwargs))

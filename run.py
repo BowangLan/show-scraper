@@ -1,4 +1,4 @@
-import desktop_notify
+from colorama import Back, Cursor
 import time
 from models import *
 from managers import *
@@ -14,7 +14,7 @@ parent_dir = os.path.abspath(os.path.join(__file__, '..'))
 
 
 def clear_screen():
-    print('\x1b[3J\x1b[H')
+    print('\x1b[2J\x1b[H')
 
 
 def run(data_manager, subscribed_manager):
@@ -24,14 +24,15 @@ def run(data_manager, subscribed_manager):
     while True:
         new_episode_length = data_manager.news.update()
         if new_episode_length:
-            data_manager.news.pretty_print(count=new_episode_length)
+            # data_manager.news.pretty_print(count=new_episode_length)
             # n = server.Notify()
             msg = '{} new episode retrieved!'.format(new_episode_length)
             # n = desktop_notify.aio.Notify(msg, time.ctime())
             # await n.show()
-        clear_screen()
-        print('Last update:', time.ctime())
-        data_manager.news.pretty_print(count=10)
+        print('\x1b[2J\x1b[HLast update:', str(time.ctime()) + '\x1b[0K')
+        output = data_manager.news.pretty(count=20).split('\n')
+        for line in output:
+            print(line + '\x1b[0K')
         time.sleep(delay)
 
 
