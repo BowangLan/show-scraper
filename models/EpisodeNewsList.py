@@ -25,7 +25,7 @@ class EpisodeNewsList(ObjectListBase):
     def update(self):
         """
         Retrieve, merge, and save new episode information.
-        Return True if there are new episodes appended, else return False.
+        Return the length of the new episodes being added.
         """
         NEWS_API = 'https://www.meijumi.net/news/'
         print("\nUpdating episode news...")
@@ -67,7 +67,7 @@ class EpisodeNewsList(ObjectListBase):
         # if len(new_episodes) != 0:
         #     print(self.pretty())
 
-        return len(new_episodes) == 0
+        return len(new_episodes)
 
     def unique_shows(self, news=None):
         """

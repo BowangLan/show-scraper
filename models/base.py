@@ -113,26 +113,26 @@ class ObjectListBase(object):
         else:
             return False
 
-    def sort(self, inplace: bool = False, **kwargs):
-        """
-        Sort the data using sorted. Keyword arguments are passed directly to `sorted()`
-        :param inplace: bool, if True, then the data is sorted and returned without modifying
-                              the original data.
-                              if False, then the original data is modified and return the 
-                              instance itself.
-        """
-        if inplace:
-            self.data = sorted(self.data, **kwargs)
-            return self
-        else:
-            return sorted(self.data, **kwargs)
+    # def sort(self, inplace: bool = False, **kwargs):
+    #     """
+    #     Sort the data using sorted. Keyword arguments are passed directly to `sorted()`
+    #     :param inplace: bool, if True, then the data is sorted and returned without modifying
+    #                           the original data.
+    #                           if False, then the original data is modified and return the
+    #                           instance itself.
+    #     """
+    #     if inplace:
+    #         self.data = sorted(self.data, **kwargs)
+    #         return self
+    #     else:
+    #         return sorted(self.data, **kwargs)
 
-    def filter(self, func, inplace: bool = False):
-        if inplace:
-            self.data = list(filter(func, self.data))
-            return self
-        else:
-            return list(filter(func, self.data.copy()))
+    # def filter(self, func, inplace: bool = False):
+    #     if inplace:
+    #         self.data = list(filter(func, self.data))
+    #         return self
+    #     else:
+    #         return list(filter(func, self.data.copy()))
 
     def unique(self):
         return len(self.data) == len(set(self.data))

@@ -1,182 +1,46 @@
+import desktop_notify
+import time
 from models import *
+from managers import *
+from queries import *
 import os
 import sys
-import json
 
 import urllib3
 urllib3.disable_warnings()
 
-parent_dir = os.path.abspath(os.path.join(__file__, ".."))
+
+parent_dir = os.path.abspath(os.path.join(__file__, '..'))
 
 
-class SubscribedShowManager(object):
-    def __init__(self, shows_source: ShowList = None, news_source: EpisodeNewsList = None, json_path: str = '') -> None:
-        self.json_path: str = json_path
-        self._shows_source: ShowList = shows_source
-        self._news_source: EpisodeNewsList = news_source
-        self._show_id_list = []
-        self.shows: ShowList = ShowList()
-        self.news: EpisodeNewsList = EpisodeNewsList()
-        self.load_json()
-
-    def load_json(self):
-        if self.json_path:
-            with open(self.json_path) as f:
-                self._show_id_list = json.load(f)
-
-            # load the show objects from show id list
-            self.load_shows()
-
-            # load the episode news of the subscribed shows
-            self.load_news()
-
-            print("Finish loading {} subscribed show(s)...".format(
-                len(self.shows)))
-
-    def load_shows(self):
-        """
-        Load a list of Show objects from self._show_id_list, stored in self.shows.
-        """
-        for show_id in self._show_id_list:
-            self.add_show_by_id(show_id, save=False)
-
-    def load_news(self):
-        """
-        Load a list of Show objects from self._show_id_list, stored in self.news.
-        """
-        self.news.data = list(
-            filter(lambda n: n.show in self.shows, self._news_source))
-
-    def save(self):
-        show_id_list = [s.meijumi_id for s in self.shows]
-        with open(self.json_path, 'w', encoding='utf-8') as f:
-            json.dump(show_id_list, f)
-        print("{} subscribed shows ID saved".format(len(show_id_list)))
-
-    def add_show(self, show_obj, save=True):
-        """
-        Add a new show to the subscribed shows, given the show id.
-        """
-        if show_obj not in self.shows:
-            self.shows.append_one(show_obj)
-            if save:
-                self.save()
-            # print("Add show {} to the subscribed show list".format(show_obj))
-        else:
-            # print(
-            # "Show with ID {} is already in the subscribed shows!".format(show_obj.meijumi_id))
-            return False
-
-    def add_show_by_id(self, show_id, save=True):
-        """
-        Add a new show to the subscribed shows, given the show id.
-        """
-        show_obj = self._shows_source.find_by_id(show_id)
-        if show_obj:
-            return self.add_show(show_obj, save=save)
-        else:
-            return False
-
-    def delete_show(self, show_obj, save=True):
-        if show_obj in self.shows:
-            self.shows.delete_one(show_obj)
-            if save:
-                self.save()
-            print("Delete show {} from the subscribed show list".format(show_obj))
-            return True
-        else:
-            return False
-
-    def delete_show_by_id(self, show_id, save=True):
-        """
-        Delete a show from the subscribed list, given the show id.
-        """
-        show_obj = self.shows.find_by_id(show_id)
-        if show_obj:
-            self.delete_show(show_obj)
-        else:
-            return False
+def clear_screen():
+    print('\x1b[2J\x1b[H')
 
 
-class MeijumiDataManager(object):
-
-    PATHS = {
-        "shows": os.path.join(parent_dir, 'data', 'shows.json'),
-        "episodes": os.path.join(parent_dir, 'data', 'episodes.json'),
-        "news": os.path.join(parent_dir, 'data', 'news.json'),
-    }
-
-    def __init__(self) -> None:
-        """
-        Initialize the manager: check if paths of each json file, then load them.
-        """
-        self.check_path()
-        self.shows = ShowList(json_path=self.PATHS['shows'])
-        self.episodes = EpisodesList(json_path=self.PATHS['episodes'])
-        self.news = EpisodeNewsList(json_path=self.PATHS['news'])
-        # self.subscribed = SubscribedShowManager(
-        #     shows_source=self.shows,
-        #     news_source=self.news,
-        #     json_path=self.PATHS['subscribed'])
-
-    """
-    ###################################
-    Methods for loading and saving data
-    ###################################
-    """
-
-    def check_path(self):
-        """
-        Check if the json file paths exist.
-          If not, create the file with [] as content.
-        """
-        for path in self.PATHS.values():
-            if not os.path.exists(path):
-                with open(path, 'w') as f:
-                    json.dump([], f)
-
-    """
-    ######################################
-    Methods for maintaining data integraty
-    ######################################
-    """
-
-    def update_shows_from_news(self, news=None, save=True):
-        """
-        Find and save new shows from the news data.
-        :param news: list of news from which to update.
-        """
-        print("Updating shows from news...")
-        news = news if news else self.news.data
-        potential_new_shows = self.news.unique_shows(news=news)
-        new_shows = self.shows.append_many(potential_new_shows)
-        if save:
-            self.shows.save()
-        print("{} new show(s) found and saved".format(len(new_shows)))
-
-    def synchronize_shows_from_news(self, news=None):
-        print("\nSynchronizing shows from episode news...")
-        news = news if news else self.news.data
-        self.update_shows_from_news(news=news, save=False)
-        update_count = 0
-        for n in news:
-            show = list(filter(lambda s: s == n.show, self.shows))[0]
-            if show.last_update:
-                if n.date > show.last_update:
-                    show.last_update = n.date
-                    update_count += 1
-            else:
-                show.last_update = n.date
-        self.shows.save()
-        print("{} shows updated and saved".format(update_count))
+def run(data_manager, subscribed_manager):
+    delay = 300
+    print("Start running...")
+    # server = desktop_notify.Server()
+    while True:
+        new_episode_length = data_manager.news.update()
+        if new_episode_length:
+            data_manager.news.pretty_print(count=new_episode_length)
+            # n = server.Notify()
+            msg = '{} new episode retrieved!'.format(new_episode_length)
+            # n = desktop_notify.aio.Notify(msg, time.ctime())
+            # await n.show()
+        clear_screen()
+        print('Last update:', time.ctime())
+        data_manager.news.pretty_print(count=10)
+        time.sleep(delay)
 
 
 def main():
-    data_manager = MeijumiDataManager()
+    data_manager = MeijumiDataManager(parent_dir)
     data_manager.synchronize_shows_from_news()
 
     subscribed_path = os.path.join(parent_dir, 'data', 'subscribed.json')
-    subscribed_manager = SubscribedShowManager(
+    subscribed_manager = SubscribedDataManager(
         shows_source=data_manager.shows,
         news_source=data_manager.news,
         json_path=subscribed_path)
@@ -193,6 +57,9 @@ def main():
         subscribed_manager.shows.pretty_print()
         print("\nCurrent episode news of subscribed shows:")
         subscribed_manager.news.pretty_print()
+
+    elif len(sys.argv) == 2 and sys.argv[1] == 'run':
+        run(data_manager, subscribed_manager)
     elif sys.argv[1] == 'update':
         data_manager.news.update()
         data_manager.synchronize_shows_from_news()
@@ -218,11 +85,12 @@ def main():
         else:
             count = 10
         keyword = sys.argv[2]
-        data = data_manager.shows.filter(
-            lambda item: item.name and keyword in item.name,
-            inplace=False)
-        print("\nSearch result(s) for \"{}\":  {} result(s)".format(
-            keyword, len(data)))
+        # data = data_manager.shows.filter(
+        #     lambda item: item.name and keyword in item.name,
+        #     inplace=False)
+        data = list(search_show_name(data_manager.shows, keyword))
+        print("\n{} search result(s) found for \"{}\":".format(
+            len(data), keyword))
         data_manager.shows.pretty_print(data=data, count=count)
 
     elif sys.argv[1] == 'news':

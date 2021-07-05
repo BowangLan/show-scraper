@@ -11,10 +11,10 @@ class ShowList(ObjectListBase):
         super().__init__(**kwargs)
 
     def save(self):
-        self.sort(key=lambda item: item.meijumi_id)
+        # self.sort(key=lambda item: item.meijumi_id)
         super().save()
 
-    def update_all(self, shows=[], save=True):
+    def update_invalid(self, shows=[], save=True):
         """
         Update information of the given list of shows.
         If no show list is given, update all.
@@ -51,19 +51,19 @@ class ShowList(ObjectListBase):
         else:
             return None
 
-    def sort_by_id(self, **kwargs):
-        """
-        Sort shows by their id.
-        """
-        kwargs['key'] = lambda s: s.meijumi_id
-        return super().sort(**kwargs)
+    # def sort_by_id(self, **kwargs):
+    #     """
+    #     Sort shows by their id.
+    #     """
+    #     kwargs['key'] = lambda s: s.meijumi_id
+    #     return super().sort(**kwargs)
 
-    def sort_by_date(self, **kwargs):
-        """
-        Sort shows by their id.
-        """
-        kwargs['key'] = lambda s: s.last_update
-        return super().sort(**kwargs)
+    # def sort_by_date(self, **kwargs):
+    #     """
+    #     Sort shows by their id.
+    #     """
+    #     kwargs['key'] = lambda s: s.last_update
+    #     return super().sort(**kwargs)
 
     def pretty(self, **kwargs):
         kwargs['format_item'] = lambda item: (

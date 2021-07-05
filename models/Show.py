@@ -17,29 +17,29 @@ class Show(ObjectModelBase):
         self.url = kwargs['url']
         self.last_update = kwargs['last_update']
 
-    @ property
+    @property
     def name(self):
         return self.data['name']
 
-    @ name.setter
+    @name.setter
     def name(self, value: str):
         if value:
             self.data['name'] = value
 
-    @ property
+    @property
     def original_name(self):
         return self.data['original_name']
 
-    @ original_name.setter
+    @original_name.setter
     def original_name(self, value: str):
         if value:
             self.data['original_name'] = value
 
-    @ property
+    @property
     def last_update(self):
         return self.data.get('last_update')
 
-    @ last_update.setter
+    @last_update.setter
     def last_update(self, value):
         if value:
             if type(value) == str:
@@ -48,14 +48,14 @@ class Show(ObjectModelBase):
             elif type(value) == date:
                 self.data['last_update'] = value
 
-    @ property
+    @property
     def url(self):
         if self.data.get('url'):
             return self.data['url']
         else:
             return ''
 
-    @ url.setter
+    @url.setter
     def url(self, value):
         if value:
             self.data['url'] = value
@@ -132,8 +132,6 @@ class Show(ObjectModelBase):
 
     def get_show(self):
         """
-        Extract the show information from a response of a show page
-        :param res: 
         """
         with HTMLSession() as s:
             tic = perf_counter()
