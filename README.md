@@ -71,3 +71,11 @@ Get a list of subscribed shows and their episode news:
 ```
 python3 run.py subscribed
 ```
+
+### Run
+
+Start periodically update:
+
+```
+python3 run.py run
+```
