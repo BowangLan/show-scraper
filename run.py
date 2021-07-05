@@ -14,7 +14,7 @@ parent_dir = os.path.abspath(os.path.join(__file__, '..'))
 
 
 def clear_screen():
-    print('\x1b[2J\x1b[H')
+    print('\x1b[3J\x1b[H')
 
 
 def run(data_manager, subscribed_manager):
